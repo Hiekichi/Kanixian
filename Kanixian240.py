@@ -1,5 +1,6 @@
 import pyxel
 import math
+import os
 
 APP_WIDTH = 240
 APP_HEIGHT = 240
@@ -265,15 +266,25 @@ class App():
         pyxel.load("kani.pyxres")
         for i in range(50):       ### 背景として流れる★
             stars.append(Star())
-        with open("hiscore.txt","r") as f:
-            self.hiscore = int(f.readline())
+        self.hiscore_path = os.path.join(
+            pyxel.user_data_dir("Hiekichi", "Kanixian"), "hiscore.txt"
+        )
+        ### 初回起動時は同梱のhiscore.txt(520)を永続化先へコピー
+        if not os.path.exists(self.hiscore_path) and os.path.exists("hiscore.txt"):
+            with open("hiscore.txt", "r") as src, open(self.hiscore_path, "w") as dst:
+                dst.write(src.read())
+        try:
+            with open(self.hiscore_path, "r") as f:
+                self.hiscore = int(f.readline())
+        except FileNotFoundError:
+            self.hiscore = 0
         self.init_game()
         pyxel.run(self.update,self.draw)
 
     def init_game(self):
         if score > self.hiscore:
             self.hiscore = score
-            with open("hiscore.txt","w") as f:
+            with open(self.hiscore_path, "w") as f:
                 f.write(str(self.hiscore))
         self.stage_number = 0
         self.is_gaming = False
